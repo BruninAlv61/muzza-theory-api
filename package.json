@@ -1,0 +1,28 @@
+{
+  "name": "muzza-theory-api",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/run-server.ts",
+    "db-setup": "tsx src/db/setup.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.17.0",
+  "dependencies": {
+    "@libsql/client": "0.15.15",
+    "express": "5.1.0",
+    "zod": "4.1.9"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "standard": "17.1.2",
+    "tsx": "^4.20.5"
+  },
+  "eslintConfig": {
+    "extends": "standard"
+  }
+}
