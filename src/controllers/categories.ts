@@ -1,6 +1,8 @@
 // src/controllers/categories.ts
-import { validateCategory } from '../schemas/categories.js'
+import { validateCategory, validatePartialCategory } from '../schemas/categories.js'
 import type { Category, CategoryModel, CategoryId } from '../types.d'
+import { handleCategoryError } from '../utils/error-handler.js'
+import { CategoryNotFoundError, CRUD_OPERATIONS } from '../errors/crud.errors.js'
 
 export class CategoriesController {
   private categoriesModel: CategoryModel
@@ -14,52 +16,88 @@ export class CategoriesController {
       const categories = await this.categoriesModel.getAll()
       res.json({ categories })
     } catch (error) {
-      console.error('Error al obtener la categoría:', error)
-      res.status(500).json({
-        error: 'Error interno del servidor al obtener las categorías'
-      })
+      handleCategoryError(error, res, CRUD_OPERATIONS.GET)
     }
-      
   }
 
   getById = async (req, res) => {
-  try {
-    const { id } = req.params
-    const category = await this.categoriesModel.getById({ id: id as CategoryId })
-    
-    return category 
-      ? res.json({ category })
-      : res.status(404).json({ error: 'Categoría no encontrada' })
-      
-  } catch (error) {
-    console.error('Error al obtener categoría:', error)
-    res.status(500).json({ error: 'Error interno del servidor' })
+    try {
+      const { id } = req.params
+      const category = await this.categoriesModel.getById({
+        id: id as CategoryId
+      })
+
+      return category
+        ? res.json({ category })
+        : res.status(404).json({ error: new CategoryNotFoundError().message })
+    } catch (error) {
+      handleCategoryError(error, res, CRUD_OPERATIONS.GET)
+    }
   }
-}
 
   create = async (req, res) => {
     try {
       const result = validateCategory(req.body)
-  
+
       if (!result.success) {
         return res.status(400).json({ error: JSON.parse(result.error.message) })
       }
-  
+
       const newCategoria = await this.categoriesModel.create({
         input: result.data as Category
       })
-  
+
       res.status(201).json({ newCategoria })
     } catch (error) {
-      console.error('Error al crear categoría:', error)
+      handleCategoryError(error, res, CRUD_OPERATIONS.CREATE)
+    }
+  }
 
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message })
+  update = async (req, res) => {
+    const result = validatePartialCategory(req.body)
+
+    if (!result.success) {
+      return res.status(400).json({ error: JSON.parse(result.error.message) })
+    }
+
+    try {
+      const { id } = req.params
+      const updatedCategory = await this.categoriesModel.update({
+        id,
+        input: result.data as Category
+      })
+      res.json({ updatedCategory })
+    } catch (error) {
+      handleCategoryError(error, res, CRUD_OPERATIONS.UPDATE)
+    }
+  }
+
+  delete = async (req, res) => {
+    try {
+      const { id } = req.params
+      const deleted = await this.categoriesModel.delete({
+        id: id as CategoryId
+      })
+
+      if (deleted) {
+        res.status(200).json({ 
+          message: 'Categoría eliminada exitosamente',
+          deleted: true 
+        })
       } else {
         res.status(500).json({ 
-          error: 'Error interno del servidor al crear la categoría' 
+          error: 'La categoría no pudo ser eliminada' 
         })
       }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('productos asociados')) {
+        return res.status(409).json({ 
+          error: error.message,
+          code: 'REFERENCE_CONSTRAINT' 
+        })
+      }
+      
+      handleCategoryError(error, res, CRUD_OPERATIONS.DELETE)
     }
   }
 }

@@ -8,3 +8,15 @@ await db.execute(`
         categoryImage TEXT NOT NULL
     )
 `)
+
+await db.execute(`
+    CREATE TABLE IF NOT EXISTS products (
+        productId TEXT PRIMARY KEY,
+        productName TEXT NOT NULL,
+        productDescription TEXT NOT NULL,
+        productPrice REAL NOT NULL,
+        productImages TEXT NOT NULL,
+        categoryId TEXT NOT NULL,
+        FOREIGN KEY (categoryId) REFERENCES categories(categoryId)
+    )
+`)
