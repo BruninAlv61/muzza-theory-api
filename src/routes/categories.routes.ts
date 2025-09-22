@@ -1,5 +1,6 @@
+// src/routes/categories.routes.ts
 import { Router } from 'express'
-import { CategoriesController } from '../controllers/category.js'
+import { CategoriesController } from '../controllers/categories.js'
 import { CategoryModel } from '../types.d'
 
 export const createCategoriesRouter = ({ categoriesModel }: { categoriesModel: CategoryModel }) => {
@@ -7,6 +8,8 @@ export const createCategoriesRouter = ({ categoriesModel }: { categoriesModel: C
     const categoriesController = new CategoriesController({ categoriesModel })
 
     categoriesRouter.post('/', categoriesController.create)
+    categoriesRouter.get('/', categoriesController.getAll)
+    categoriesRouter.get('/:id', categoriesController.getById)
 
     return categoriesRouter
 }
