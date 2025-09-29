@@ -1,7 +1,7 @@
 // src/index.ts
 import express from 'express'
-import { createCategoriesRouter } from './routes/categories.routes.js'
-import { CategoryModel } from './types'
+import { createCategoriesRouter } from './menu/categories/categories.routes.js'
+import { CategoryModel } from './shared/types.js'
 
 export const createApp = ({ categoriesModel }: { categoriesModel: CategoryModel}) => {
     const app = express()
@@ -22,6 +22,6 @@ export const createApp = ({ categoriesModel }: { categoriesModel: CategoryModel}
     const PORT = process.env.PORT || 3000
     
     app.listen(PORT, '0.0.0.0', () => {
-        console.log(`Server is running on port ${PORT}`)
+        console.log(`Server is running on http://localhost:${PORT}`)
     })
 }

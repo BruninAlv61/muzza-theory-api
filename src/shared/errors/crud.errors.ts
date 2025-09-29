@@ -1,4 +1,4 @@
-// src/errors/crud.errors.ts
+// src/shared/errors/crud.errors.ts
 export const CRUD_OPERATIONS = {
   CREATE: 'crear',
   GET: 'obtener',

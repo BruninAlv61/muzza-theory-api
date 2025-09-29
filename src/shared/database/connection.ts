@@ -1,4 +1,4 @@
-// src/db/connection.js
+// src/shared/database/connection.ts
 import { createClient } from '@libsql/client'
 import { DB_TOKEN, DB_URL } from '../config.js'
 

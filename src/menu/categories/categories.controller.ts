@@ -1,8 +1,8 @@
-// src/controllers/categories.ts
-import { validateCategory, validatePartialCategory } from '../schemas/categories.js'
-import type { Category, CategoryModel, CategoryId } from '../types.d'
-import { handleCategoryError } from '../utils/error-handler.js'
-import { CategoryNotFoundError, CRUD_OPERATIONS } from '../errors/crud.errors.js'
+// src/menu/categories/categories.controller.ts
+import { validateCategory, validatePartialCategory } from './categories.schema.js'
+import type { Category, CategoryModel, CategoryId } from '../../shared/types.js'
+import { handleCategoryError } from '../../shared/utils/error-handler.js'
+import { CategoryNotFoundError, CRUD_OPERATIONS } from '../../shared/errors/crud.errors.js'
 
 export class CategoriesController {
   private categoriesModel: CategoryModel

@@ -1,7 +1,7 @@
-// src/routes/categories.routes.ts
+// src/menu/categories/categories.routes.ts
 import { Router } from 'express'
-import { CategoriesController } from '../controllers/categories.js'
-import { CategoryModel } from '../types.d'
+import { CategoriesController } from './categories.controller.js'
+import { CategoryModel } from '../../shared/types.js'
 
 export const createCategoriesRouter = ({ categoriesModel }: { categoriesModel: CategoryModel }) => {
     const categoriesRouter = Router()

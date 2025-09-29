@@ -1,4 +1,4 @@
-// src/types.d.ts
+// src/shared/types.d.ts
 export type UUID = `${string}-${string}-${string}-${string}-${string}`
 
 export interface CrudModel<T, TWithId, TId = UUID> {

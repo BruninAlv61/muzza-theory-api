@@ -1,8 +1,16 @@
-// src/models/categories.ts
-import { db } from '../db/connection.js'
+// src/menu/categories/categories.model.ts
+import { db } from '../../shared/database/connection.js'
 import { randomUUID } from 'crypto'
-import type { Category, CategoryWithId, CategoryId } from '../types.d'
-import { CategoryNotFoundError, CategoryDatabaseError, CRUD_OPERATIONS } from '../errors/crud.errors.js'
+import type {
+  Category,
+  CategoryWithId,
+  CategoryId
+} from '../../shared/types.js'
+import {
+  CategoryNotFoundError,
+  CategoryDatabaseError,
+  CRUD_OPERATIONS
+} from '../../shared/errors/crud.errors.js'
 
 export class CategoriesModel {
   static async getAll(): Promise<CategoryWithId[]> {
@@ -15,14 +23,18 @@ export class CategoriesModel {
     }
   }
 
-  static async getById({ id }: { id: CategoryId }): Promise<CategoryWithId | null> {
+  static async getById({
+    id
+  }: {
+    id: CategoryId
+  }): Promise<CategoryWithId | null> {
     try {
       const result = await db.execute(
         'SELECT * FROM categories WHERE categoryId = ?',
         [id]
       )
 
-      return result.rows[0] 
+      return result.rows[0]
         ? (result.rows[0] as unknown as CategoryWithId)
         : null
     } catch (error) {
@@ -55,32 +67,40 @@ export class CategoriesModel {
     }
   }
 
-  static async update({ id, input }: { id: CategoryId; input: Category }): Promise<CategoryWithId> {
-    const { categoryName, categoryDescription, categoryImage } = input
-
+  static async update({
+    id,
+    input
+  }: {
+    id: CategoryId
+    input: Partial<Category>
+  }): Promise<CategoryWithId> {
     try {
       const existingCategory = await this.getById({ id })
 
       if (!existingCategory) throw new CategoryNotFoundError()
 
+      const updatedCategory = {
+        categoryName: input.categoryName ?? existingCategory.categoryName,
+        categoryDescription: input.categoryDescription ?? existingCategory.categoryDescription,
+        categoryImage: input.categoryImage ?? existingCategory.categoryImage
+      }
+
       await db.execute(
         `UPDATE categories
         SET categoryName = ?, categoryDescription = ?, categoryImage = ?
         WHERE categoryId = ?`,
-        [categoryName, categoryDescription, categoryImage, id]
+        [updatedCategory.categoryName, updatedCategory.categoryDescription, updatedCategory.categoryImage, id]
       )
 
       return {
         categoryId: id,
-        categoryName,
-        categoryDescription,
-        categoryImage
+        ...updatedCategory
       }
     } catch (error) {
       if (error instanceof CategoryNotFoundError) {
         throw error
       }
-      
+
       console.error('Error al actualizar la categoría', error)
       throw new CategoryDatabaseError(CRUD_OPERATIONS.UPDATE, error as Error)
     }
@@ -88,7 +108,6 @@ export class CategoriesModel {
 
   static async delete({ id }: { id: CategoryId }): Promise<boolean> {
     try {
-      // Primero verificar si existe
       const existingCategory = await this.getById({ id })
 
       if (!existingCategory) {
@@ -99,29 +118,30 @@ export class CategoriesModel {
         'SELECT COUNT(*) as count FROM products WHERE categoryId = ?',
         [id]
       )
-      
+
       const productCount = (productsWithCategory.rows[0] as any)?.count || 0
-      
+
       if (productCount > 0) {
-        throw new Error('No se puede eliminar la categoría porque tiene productos asociados')
+        throw new Error(
+          'No se puede eliminar la categoría porque tiene productos asociados'
+        )
       }
 
-      // Proceder con la eliminación
       const result = await db.execute(
         'DELETE FROM categories WHERE categoryId = ?',
         [id]
       )
 
-      // Verificar que se eliminó al menos una fila
       return result.rowsAffected > 0
-
     } catch (error) {
-      // Si es nuestro error personalizado o de integridad referencial, lo re-lanzamos
-      if (error instanceof CategoryNotFoundError || 
-          (error instanceof Error && error.message.includes('productos asociados'))) {
+      if (
+        error instanceof CategoryNotFoundError ||
+        (error instanceof Error &&
+          error.message.includes('productos asociados'))
+      ) {
         throw error
       }
-      
+
       console.error('Error al eliminar la categoría', error)
       throw new CategoryDatabaseError(CRUD_OPERATIONS.DELETE, error as Error)
     }

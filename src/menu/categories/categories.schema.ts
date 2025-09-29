@@ -1,6 +1,6 @@
-// src/schemas/category.ts
+// src/menu/categories/categories.schema.ts
 import { z } from 'zod'
-import { type Category } from '../types.d'
+import { type Category } from '../../shared/types'
 
 const categoriesSchema = z.object({
   categoryName: z

@@ -1,3 +1,4 @@
+// src/shared/database/setup.ts
 import { db } from './connection.js'
 
 await db.execute(`

@@ -1,3 +1,4 @@
+// src/shared/config.ts
 process.loadEnvFile()
 
 export const {

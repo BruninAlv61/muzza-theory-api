@@ -1,5 +1,5 @@
-// src/utils/error-handler.ts
-import { type CrudOperation, EntityNotFoundError, DatabaseError } from '../errors/crud.errors.js'
+// src/shared/utils/error-handler.ts
+import { type CrudOperation, EntityNotFoundError, DatabaseError } from '../errors/crud.errors'
 interface ErrorConfig {
   NotFoundError: new (id: string) => EntityNotFoundError
   DatabaseError: new (operation: CrudOperation, originalError?: Error) => DatabaseError
@@ -31,7 +31,7 @@ export const createErrorHandler = (config: ErrorConfig) => {
 import { 
   CategoryNotFoundError, 
   CategoryDatabaseError,
-} from '../errors/crud.errors.js'
+} from '../errors/crud.errors'
 
 export const handleCategoryError = createErrorHandler({
   NotFoundError: CategoryNotFoundError,
