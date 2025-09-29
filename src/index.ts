@@ -1,15 +1,17 @@
 // src/index.ts
 import express from 'express'
 import { createCategoriesRouter } from './menu/categories/categories.routes.js'
-import { CategoryModel } from './shared/types.js'
+import { createProductsRouter } from './menu/products/products.routes.js'
+import { CategoryModel, ProductModel } from './shared/types.js'
 
-export const createApp = ({ categoriesModel }: { categoriesModel: CategoryModel}) => {
+export const createApp = ({ categoriesModel, productsModel }: { categoriesModel: CategoryModel, productsModel: ProductModel}) => {
     const app = express()
     
     app.use(express.json())
     app.disable('x-powered-by')
 
     app.use('/categories', createCategoriesRouter({ categoriesModel }))
+    app.use('/products', createProductsRouter({ productsModel }))
     
     app.get('/', (req, res) => {
       res.json({

@@ -18,3 +18,15 @@ export type Category = {
 export type CategoryId = UUID
 export type CategoryWithId = Category & { categoryId: CategoryId }
 export interface CategoryModel extends CrudModel<Category, CategoryWithId, CategoryId> {}
+
+export type Product = {
+  productName: string
+  productDescription: string
+  productPrice: number
+  productImages: string
+  categoryId: CategoryId
+}
+
+export type ProductId = UUID
+export type ProductWithId = Product & { productId: ProductId }
+export interface ProductModel extends CrudModel<Product, ProductWithId, ProductId> {}

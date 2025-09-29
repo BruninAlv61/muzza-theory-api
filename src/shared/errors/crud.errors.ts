@@ -37,3 +37,17 @@ export class CategoryDatabaseError extends DatabaseError {
     this.name = 'CategoryDatabaseError'
   }
 }
+
+export class ProductNotFoundError extends EntityNotFoundError {
+  constructor() {
+    super('Producto')
+    this.name = 'ProductNotFoundError'
+  }
+}
+
+export class ProductDatabaseError extends DatabaseError {
+  constructor(operation: CrudOperation, originalError?: Error) {
+    super('el producto', operation, originalError)
+    this.name = 'ProductDatabaseError'
+  }
+}
