@@ -6,7 +6,10 @@ import {
   ProductNotFoundError,
   ProductDatabaseError,
   CategoryNotFoundError,
-  CategoryDatabaseError
+  CategoryDatabaseError,
+  OfferNotFoundError,
+  OfferDatabaseError,
+  DuplicateOfferError
 } from '../errors/crud.errors'
 
 interface ErrorConfig {
@@ -15,12 +18,17 @@ interface ErrorConfig {
     operation: CrudOperation,
     originalError?: Error
   ) => DatabaseError
+  DuplicateError?: new () => Error
   entityName: string
 }
 
 export const createErrorHandler = (config: ErrorConfig) => {
   return (error: unknown, res: any, operation: CrudOperation) => {
     console.error(`Error al ${operation} ${config.entityName}:`, error)
+
+    if (config.DuplicateError && error instanceof config.DuplicateError) {
+      return res.status(409).json({ error: error.message })
+    }
 
     if (error instanceof EntityNotFoundError) {
       return res.status(404).json({ error: error.message })
@@ -50,4 +58,11 @@ export const handleProductError = createErrorHandler({
   NotFoundError: ProductNotFoundError,
   DatabaseError: ProductDatabaseError,
   entityName: 'producto'
+})
+
+export const handleOfferError = createErrorHandler({
+  NotFoundError: OfferNotFoundError,
+  DatabaseError: OfferDatabaseError,
+  DuplicateError: DuplicateOfferError,
+  entityName: 'oferta'
 })

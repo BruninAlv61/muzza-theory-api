@@ -2,9 +2,10 @@
 import express from 'express'
 import { createCategoriesRouter } from './menu/categories/categories.routes.js'
 import { createProductsRouter } from './menu/products/products.routes.js'
-import { CategoryModel, ProductModel } from './shared/types.js'
+import { createOffersRouter } from './menu/offers/offers.routes.js'
+import { CategoryModel, ProductModel, OfferModel } from './shared/types.js'
 
-export const createApp = ({ categoriesModel, productsModel }: { categoriesModel: CategoryModel, productsModel: ProductModel}) => {
+export const createApp = ({ categoriesModel, productsModel, offersModel }: { categoriesModel: CategoryModel, productsModel: ProductModel, offersModel: OfferModel }) => {
     const app = express()
     
     app.use(express.json())
@@ -12,7 +13,8 @@ export const createApp = ({ categoriesModel, productsModel }: { categoriesModel:
 
     app.use('/categories', createCategoriesRouter({ categoriesModel }))
     app.use('/products', createProductsRouter({ productsModel }))
-    
+    app.use('/offers', createOffersRouter({ offersModel }))
+
     app.get('/', (req, res) => {
       res.json({
         message: 'Muzza Theory',

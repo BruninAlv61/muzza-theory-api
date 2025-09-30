@@ -51,3 +51,24 @@ export class ProductDatabaseError extends DatabaseError {
     this.name = 'ProductDatabaseError'
   }
 }
+
+export class OfferNotFoundError extends EntityNotFoundError {
+  constructor() {
+    super('Oferta')
+    this.name = 'OfferNotFoundError'
+  }
+}
+
+export class OfferDatabaseError extends DatabaseError {
+  constructor(operation: CrudOperation, originalError?: Error) {
+    super('la oferta', operation, originalError)
+    this.name = 'OfferDatabaseError'
+  }
+}
+
+export class DuplicateOfferError extends Error {
+  constructor() {
+    super('Ya existe una oferta activa para este producto')
+    this.name = 'DuplicateOfferError'
+  }
+}

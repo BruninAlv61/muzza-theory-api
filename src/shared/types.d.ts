@@ -30,3 +30,15 @@ export type Product = {
 export type ProductId = UUID
 export type ProductWithId = Product & { productId: ProductId }
 export interface ProductModel extends CrudModel<Product, ProductWithId, ProductId> {}
+
+export type Offer = {
+  productId: ProductId
+  offerDiscount: number
+  offerFinishDate: string
+}
+
+export type OfferId = UUID
+export type OfferWithId = Offer & { offerId: OfferId }
+export type OfferFormatedResponse = OfferWithId & { product: ProductWithId }
+
+export interface OfferModel extends CrudModel<Offer, OfferFormatedResponse, OfferId> {}

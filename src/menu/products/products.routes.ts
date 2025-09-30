@@ -1,3 +1,4 @@
+// src/menu/products/products.routes.ts
 import { Router } from 'express'
 import { ProductsController } from './products.controller.js'
 import { ProductModel } from '../../shared/types.js'

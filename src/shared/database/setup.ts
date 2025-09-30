@@ -21,3 +21,13 @@ await db.execute(`
         FOREIGN KEY (categoryId) REFERENCES categories(categoryId)
     )
 `)
+
+await db.execute(`
+    CREATE TABLE IF NOT EXISTS offers (
+        offerId TEXT PRIMARY KEY,
+        productId TEXT NOT NULL,
+        offerDiscount REAL NOT NULL,
+        offerFinishDate TEXT NOT NULL,
+        FOREIGN KEY (productId) REFERENCES products(productId)
+    )
+`)

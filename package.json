@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/run-server.ts",
-    "db-setup": "tsx src/db/setup.ts"
+    "db-setup": "tsx src/shared/database/setup.ts"
   },
   "keywords": [],
   "author": "",
