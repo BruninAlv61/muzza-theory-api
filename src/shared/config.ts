@@ -3,5 +3,7 @@ process.loadEnvFile()
 
 export const {
     DB_TOKEN,
-    DB_URL
+    DB_URL,
+    NODE_ENV,
+    LOG_LEVEL
 } = process.env

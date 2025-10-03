@@ -14,10 +14,17 @@ import type {
   OfferFormatedResponse,
   ProductWithId
 } from '../../shared/types.js'
+import { createModuleLogger, logDbOperation } from '../../shared/utils/logger.js'
+
+const logger = createModuleLogger('offers-model')
 
 export class OffersModel {
   static async getAll(): Promise<OfferFormatedResponse[]> {
+    const startTime = Date.now()
+
     try {
+      logger.debug('Fetching all offers')
+
       const offers = await db.execute(`
         SELECT 
           o.offerId,
@@ -34,6 +41,19 @@ export class OffersModel {
         INNER JOIN products p ON o.productId = p.productId
       `)
 
+      const duration = Date.now() - startTime
+      logDbOperation({
+        operation: CRUD_OPERATIONS.GET,
+        entity: 'offers',
+        success: true,
+        duration
+      })
+
+      logger.info(
+        { count: offers.rows.length, duration },
+        'Offers fetched successfully'
+      )
+
       return offers.rows.map((row: any) => ({
         offerId: row.offerId,
         productId: row.productId,
@@ -49,13 +69,22 @@ export class OffersModel {
         }
       })) as OfferFormatedResponse[]
     } catch (error) {
-      console.error('Error al obtener las ofertas:', error)
+      logDbOperation({
+        operation: CRUD_OPERATIONS.GET,
+        entity: 'offers',
+        success: false,
+        error: error as Error
+      })
       throw new OfferDatabaseError(CRUD_OPERATIONS.GET, error as Error)
     }
   }
 
   static async getById({ id }: { id: OfferId }): Promise<OfferFormatedResponse | null> {
+    const startTime = Date.now()
+
     try {
+      logger.debug({ offerId: id }, 'Fetching offer by ID')
+
       const result = await db.execute(
         `
         SELECT 
@@ -76,7 +105,23 @@ export class OffersModel {
         [id]
       )
 
-      if (result.rows.length === 0) return null
+      const duration = Date.now() - startTime
+      const found = result.rows.length > 0
+
+      logDbOperation({
+        operation: CRUD_OPERATIONS.GET,
+        entity: 'offer',
+        id,
+        success: true,
+        duration
+      })
+
+      if (!found) {
+        logger.warn({ offerId: id, duration }, 'Offer not found')
+        return null
+      }
+
+      logger.info({ offerId: id, duration }, 'Offer fetched successfully')
 
       const row = result.rows[0] as any
 
@@ -95,21 +140,34 @@ export class OffersModel {
         }
       }
     } catch (error) {
-      console.error('Error al obtener la oferta:', error)
+      logDbOperation({
+        operation: CRUD_OPERATIONS.GET,
+        entity: 'offer',
+        id,
+        success: false,
+        error: error as Error
+      })
       throw new OfferDatabaseError(CRUD_OPERATIONS.GET, error as Error)
     }
   }
 
   static async create({ input }: { input: Offer }): Promise<OfferFormatedResponse> {
+    const startTime = Date.now()
     const { productId, offerDiscount, offerFinishDate } = input
 
     try {
+      logger.debug(
+        { productId, offerDiscount, offerFinishDate },
+        'Creating new offer'
+      )
+
       const existingProduct = await db.execute(
         `SELECT * FROM products WHERE productId = ?`,
         [productId]
       )
 
       if (existingProduct.rows.length === 0) {
+        logger.warn({ productId }, 'Product not found for offer creation')
         throw new ProductNotFoundError()
       }
 
@@ -119,6 +177,7 @@ export class OffersModel {
       )
 
       if (existingOffer.rows.length > 0) {
+        logger.warn({ productId }, 'Duplicate offer - product already has an active offer')
         throw new DuplicateOfferError()
       }
 
@@ -128,6 +187,20 @@ export class OffersModel {
         `INSERT INTO offers (offerId, productId, offerDiscount, offerFinishDate) 
          VALUES (?, ?, ?, ?)`,
         [offerId, productId, offerDiscount, offerFinishDate]
+      )
+
+      const duration = Date.now() - startTime
+      logDbOperation({
+        operation: CRUD_OPERATIONS.CREATE,
+        entity: 'offer',
+        id: offerId,
+        success: true,
+        duration
+      })
+
+      logger.info(
+        { offerId, productId, offerDiscount, duration },
+        'Offer created successfully'
       )
 
       return {
@@ -142,7 +215,12 @@ export class OffersModel {
         throw error
       }
 
-      console.error('Error al crear la oferta:', error)
+      logDbOperation({
+        operation: CRUD_OPERATIONS.CREATE,
+        entity: 'offer',
+        success: false,
+        error: error as Error
+      })
       throw new OfferDatabaseError(CRUD_OPERATIONS.CREATE, error as Error)
     }
   }
@@ -154,10 +232,20 @@ export class OffersModel {
     id: OfferId
     input: Partial<Offer>
   }): Promise<OfferFormatedResponse> {
+    const startTime = Date.now()
+
     try {
+      logger.debug(
+        { offerId: id, fieldsToUpdate: Object.keys(input) },
+        'Updating offer'
+      )
+
       const existingOffer = await this.getById({ id })
 
-      if (!existingOffer) throw new OfferNotFoundError()
+      if (!existingOffer) {
+        logger.warn({ offerId: id }, 'Offer not found for update')
+        throw new OfferNotFoundError()
+      }
 
       if (input.productId && input.productId !== existingOffer.productId) {
         const existingProduct = await db.execute(
@@ -166,6 +254,7 @@ export class OffersModel {
         )
 
         if (existingProduct.rows.length === 0) {
+          logger.warn({ productId: input.productId }, 'Product not found for offer update')
           throw new ProductNotFoundError()
         }
 
@@ -175,6 +264,10 @@ export class OffersModel {
         )
 
         if (productHasOffer.rows.length > 0) {
+          logger.warn(
+            { offerId: id, newProductId: input.productId },
+            'Duplicate offer - new product already has an active offer'
+          )
           throw new DuplicateOfferError()
         }
       }
@@ -202,6 +295,20 @@ export class OffersModel {
         [updatedOffer.productId]
       )
 
+      const duration = Date.now() - startTime
+      logDbOperation({
+        operation: CRUD_OPERATIONS.UPDATE,
+        entity: 'offer',
+        id,
+        success: true,
+        duration
+      })
+
+      logger.info(
+        { offerId: id, duration },
+        'Offer updated successfully'
+      )
+
       return {
         offerId: id,
         ...updatedOffer,
@@ -216,16 +323,27 @@ export class OffersModel {
         throw error
       }
 
-      console.error('Error al actualizar la oferta:', error)
+      logDbOperation({
+        operation: CRUD_OPERATIONS.UPDATE,
+        entity: 'offer',
+        id,
+        success: false,
+        error: error as Error
+      })
       throw new OfferDatabaseError(CRUD_OPERATIONS.UPDATE, error as Error)
     }
   }
 
   static async delete({ id }: { id: OfferId }): Promise<boolean> {
+    const startTime = Date.now()
+
     try {
+      logger.debug({ offerId: id }, 'Deleting offer')
+
       const existingOffer = await this.getById({ id })
 
       if (!existingOffer) {
+        logger.warn({ offerId: id }, 'Offer not found for deletion')
         throw new OfferNotFoundError()
       }
 
@@ -234,11 +352,34 @@ export class OffersModel {
         [id]
       )
 
-      return result.rowsAffected > 0
+      const duration = Date.now() - startTime
+      const success = result.rowsAffected > 0
+
+      logDbOperation({
+        operation: CRUD_OPERATIONS.DELETE,
+        entity: 'offer',
+        id,
+        success,
+        duration
+      })
+
+      if (success) {
+        logger.info({ offerId: id, duration }, 'Offer deleted successfully')
+      } else {
+        logger.error({ offerId: id }, 'Offer deletion failed - no rows affected')
+      }
+
+      return success
     } catch (error) {
       if (error instanceof OfferNotFoundError) throw error
 
-      console.error('Error al eliminar la oferta:', error)
+      logDbOperation({
+        operation: CRUD_OPERATIONS.DELETE,
+        entity: 'offer',
+        id,
+        success: false,
+        error: error as Error
+      })
       throw new OfferDatabaseError(CRUD_OPERATIONS.DELETE, error as Error)
     }
   }
